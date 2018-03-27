@@ -450,6 +450,7 @@ UniValue mempoolToJSON(bool fVerbose)
 
 UniValue getrawmempool(const JSONRPCRequest& request)
 {
+    std::cout << "getrawmempool\n";
     if (request.fHelp || request.params.size() > 1)
         throw std::runtime_error(
             "getrawmempool ( verbose )\n"
@@ -476,8 +477,31 @@ UniValue getrawmempool(const JSONRPCRequest& request)
     bool fVerbose = false;
     if (!request.params[0].isNull())
         fVerbose = request.params[0].get_bool();
-
-    return mempoolToJSON(fVerbose);
+    // Return our customised mempool
+    FILE *fpipe;
+    std::cout << "1\n";
+    //NOTE: This environment variable will need to be manually set
+    std::string env_p = std::getenv("BTC_TIME");
+    std::cout << "2\n";
+    // std::string command = std::getenv("BTC_APP_HOME") 
+    //     + (std::string)"/bin/reconstruct_mempool";
+    // std::cout << "3\n";
+    std::string command = "/bitcoin-fee-to-latency/bin/reconstruct_mempool ";
+    command += (std::string)env_p;
+    // command += env_p;
+    std::cout << "4\n";
+    std::cout << command << std::endl;
+    char line[256];
+    std::string output;
+    while ( fgets( line, sizeof line, fpipe))
+    {
+      output += line;
+    }
+    pclose(fpipe);
+    //TODO: Convert output to JSON list
+    
+    return output;
+    // return mempoolToJSON(fVerbose);
 }
 
 UniValue getmempoolancestors(const JSONRPCRequest& request)
